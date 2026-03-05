@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英語の単語ポスター - 音声付き学習</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #e8f4fd;
+    --ocean: #1a73e8;
+    --sunshine: #fbbc04;
+    --grass: #34a853;
+    --coral: #ea4335;
+    --lavender: #9c27b0;
+    --peach: #ff7043;
+    --mint: #00bcd4;
+    --card-bg: #ffffff;
+    --text-dark: #1a1a2e;
+    --text-mid: #444;
+    --shadow: rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--sky);
+    min-height: 100vh;
+    color: var(--text-dark);
+    background-image:
+      radial-gradient(circle at 10% 20%, rgba(26,115,232,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 90% 80%, rgba(52,168,83,0.08) 0%, transparent 50%);
+  }
+
+  header {
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    color: white;
+    padding: 24px 20px 28px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(26,115,232,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -20%;
+    width: 60%; height: 200%;
+    background: rgba(255,255,255,0.05);
+    transform: rotate(-15deg);
+    pointer-events: none;
+  }
+  header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    letter-spacing: 1px;
+    position: relative;
+  }
+  header p {
+    font-size: 0.95rem;
+    opacity: 0.85;
+    margin-top: 6px;
+    position: relative;
+  }
+
+  .category-tabs {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 16px 16px 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .category-tabs::-webkit-scrollbar { display: none; }
+
+  .tab-btn {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 2px solid transparent;
+    background: white;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-mid);
+    box-shadow: 0 2px 8px var(--shadow);
+    white-space: nowrap;
+  }
+  .tab-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--shadow); }
+  .tab-btn.active {
+    background: var(--ocean);
+    color: white;
+    border-color: var(--ocean);
+  }
+
+  .category-section {
+    display: none;
+    padding: 16px;
+    animation: fadeIn 0.3s ease;
+  }
+  .category-section.visible { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.3rem;
+    color: var(--ocean);
+    margin-bottom: 16px;
+    padding-left: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .word-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+  }
+
+  .word-card {
+    background: white;
+    border-radius: 16px;
+    padding: 16px 12px 14px;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 0 3px 10px var(--shadow);
+    transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    border: 2px solid transparent;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .word-card:hover {
+    transform: translateY(-4px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(26,115,232,0.22);
+    border-color: var(--ocean);
+  }
+  .word-card:active { transform: scale(0.95); }
+
+  .word-card.playing {
+    border-color: var(--sunshine);
+    background: linear-gradient(135deg, #fffde7, #fff9c4);
+    animation: pulse 0.5s ease;
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.07); }
+    100% { transform: scale(1); }
+  }
+
+  .word-emoji {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+
+  .word-en {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    color: var(--text-dark);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .word-jp {
+    font-size: 0.72rem;
+    color: #888;
+    display: block;
+    line-height: 1.3;
+  }
+
+  .sound-icon {
+    position: absolute;
+    top: 7px; right: 9px;
+    font-size: 0.75rem;
+    opacity: 0.35;
+    transition: opacity 0.2s;
+  }
+  .word-card:hover .sound-icon { opacity: 0.7; }
+  .word-card.playing .sound-icon { opacity: 1; animation: spin 0.5s linear; }
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Color coding per category */
+  .cat-time .word-card:hover { border-color: #1a73e8; }
+  .cat-days .word-card:hover { border-color: #34a853; }
+  .cat-numbers .word-card:hover { border-color: #ea4335; }
+  .cat-food .word-card:hover { border-color: #ff7043; }
+  .cat-animals .word-card:hover { border-color: #9c27b0; }
+  .cat-colors .word-card:hover { border-color: #00bcd4; }
+  .cat-body .word-card:hover { border-color: #fbbc04; }
+  .cat-verbs .word-card:hover { border-color: #e91e63; }
+
+  .number-display {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.8rem;
+    color: var(--coral);
+    display: block;
+    margin-bottom: 4px;
+    line-height: 1;
+  }
+
+  footer {
+    text-align: center;
+    padding: 24px;
+    color: #aaa;
+    font-size: 0.8rem;
+  }
+
+  @media (max-width: 400px) {
+    .word-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .word-card { padding: 12px 8px 10px; }
+    .word-emoji { font-size: 1.5rem; }
+    .word-en { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🔊 英語の単語ポスター</h1>
+  <p>カードをタップして、ネイティブの発音を聞こう！</p>
+</header>
+
+<div class="category-tabs" id="tabs"></div>
+
+<div id="sections"></div>
+
+<footer>小学校の英単語700語 英検５級相当 ／ Web Speech API使用</footer>
+
+<script>
+const categories = [
+  {
+    id: 'time', label: '⏰ 時・行事', cssClass: 'cat-time',
+    words: [
+      {en:'year', jp:'年', emoji:'📅'},
+      {en:'month', jp:'月', emoji:'🗓️'},
+      {en:'week', jp:'週', emoji:'📆'},
+      {en:'day', jp:'日', emoji:'☀️'},
+      {en:'today', jp:'今日', emoji:'📌'},
+      {en:'tomorrow', jp:'明日', emoji:'🌅'},
+      {en:'date', jp:'日付', emoji:'🗒️'},
+      {en:'time', jp:'時こく', emoji:'🕐'},
+      {en:'hour', jp:'１時間', emoji:'⏱️'},
+      {en:'minute', jp:'分', emoji:'⏳'},
+      {en:'morning', jp:'朝', emoji:'🌄'},
+      {en:'noon', jp:'正午', emoji:'🌞'},
+      {en:'afternoon', jp:'午後', emoji:'🌤️'},
+      {en:'evening', jp:'晩', emoji:'🌆'},
+      {en:'night', jp:'夜', emoji:'🌙'},
+      {en:'weekend', jp:'週末', emoji:'🎉'},
+      {en:"New Year's Day", jp:'元日', emoji:'🎍'},
+      {en:"Dolls' Festival", jp:'ひなまつり', emoji:'🎎'},
+      {en:"Children's Day", jp:'こどもの日', emoji:'🎏'},
+      {en:'Christmas', jp:'クリスマス', emoji:'🎄'},
+      {en:"New Year's Eve", jp:'大みそか', emoji:'🎆'},
+      {en:'vacation', jp:'休み', emoji:'🏖️'},
+      {en:'birthday', jp:'誕生日', emoji:'🎂'},
+      {en:'present', jp:'プレゼント', emoji:'🎁'},
+      {en:'party', jp:'パーティー', emoji:'🎊'},
+    ]
+  },
+  {
+    id: 'days', label: '📅 曜日・季節・月', cssClass: 'cat-days',
+    words: [
+      {en:'Monday', jp:'月曜日', emoji:'🌙'},
+      {en:'Tuesday', jp:'火曜日', emoji:'🔥'},
+      {en:'Wednesday', jp:'水曜日', emoji:'💧'},
+      {en:'Thursday', jp:'木曜日', emoji:'🌳'},
+      {en:'Friday', jp:'金曜日', emoji:'✨'},
+      {en:'Saturday', jp:'土曜日', emoji:'🌍'},
+      {en:'Sunday', jp:'日曜日', emoji:'☀️'},
+      {en:'spring', jp:'春', emoji:'🌸'},
+      {en:'summer', jp:'夏', emoji:'🌻'},
+      {en:'autumn', jp:'秋', emoji:'🍂'},
+      {en:'winter', jp:'冬', emoji:'❄️'},
+      {en:'January', jp:'１月', emoji:'🎍'},
+      {en:'February', jp:'２月', emoji:'❤️'},
+      {en:'March', jp:'３月', emoji:'🌸'},
+      {en:'April', jp:'４月', emoji:'🌷'},
+      {en:'May', jp:'５月', emoji:'🌺'},
+      {en:'June', jp:'６月', emoji:'☔'},
+      {en:'July', jp:'７月', emoji:'🎆'},
+      {en:'August', jp:'８月', emoji:'🏄'},
+      {en:'September', jp:'９月', emoji:'🌾'},
+      {en:'October', jp:'１０月', emoji:'🎃'},
+      {en:'November', jp:'１１月', emoji:'🍁'},
+      {en:'December', jp:'１２月', emoji:'🎄'},
+    ]
+  },
+  {
+    id: 'numbers', label: '🔢 数', cssClass: 'cat-numbers',
+    words: [
+      {en:'one', jp:'1', emoji:'1️⃣'},
+      {en:'two', jp:'2', emoji:'2️⃣'},
+      {en:'three', jp:'3', emoji:'3️⃣'},
+      {en:'four', jp:'4', emoji:'4️⃣'},
+      {en:'five', jp:'5', emoji:'5️⃣'},
+      {en:'six', jp:'6', emoji:'6️⃣'},
+      {en:'seven', jp:'7', emoji:'7️⃣'},
+      {en:'eight', jp:'8', emoji:'8️⃣'},
+      {en:'nine', jp:'9', emoji:'9️⃣'},
+      {en:'ten', jp:'10', emoji:'🔟'},
+      {en:'eleven', jp:'11', emoji:'#️⃣'},
+      {en:'twelve', jp:'12', emoji:'🕛'},
+      {en:'thirteen', jp:'13', emoji:'🔢'},
+      {en:'fourteen', jp:'14', emoji:'🔢'},
+      {en:'fifteen', jp:'15', emoji:'🔢'},
+      {en:'twenty', jp:'20', emoji:'🔢'},
+      {en:'thirty', jp:'30', emoji:'🔢'},
+      {en:'forty', jp:'40', emoji:'🔢'},
+      {en:'fifty', jp:'50', emoji:'🔢'},
+      {en:'hundred', jp:'100', emoji:'💯'},
+      {en:'thousand', jp:'1000', emoji:'🏦'},
+      {en:'zero', jp:'0', emoji:'⭕'},
+    ]
+  },
+  {
+    id: 'food', label: '🍔 食べもの', cssClass: 'cat-food',
+    words: [
+      {en:'breakfast', jp:'朝ご飯', emoji:'🥞'},
+      {en:'lunch', jp:'昼ご飯', emoji:'🍱'},
+      {en:'dinner', jp:'晩ご飯', emoji:'🍽️'},
+      {en:'meal', jp:'食事', emoji:'🍴'},
+      {en:'food', jp:'食べ物', emoji:'🥗'},
+      {en:'hamburger', jp:'ハンバーガー', emoji:'🍔'},
+      {en:'pizza', jp:'ピザ', emoji:'🍕'},
+      {en:'spaghetti', jp:'スパゲッティ', emoji:'🍝'},
+      {en:'steak', jp:'ステーキ', emoji:'🥩'},
+      {en:'salad', jp:'サラダ', emoji:'🥗'},
+      {en:'noodle', jp:'麺類', emoji:'🍜'},
+      {en:'egg', jp:'卵', emoji:'🥚'},
+      {en:'rice ball', jp:'おにぎり', emoji:'🍙'},
+      {en:'soup', jp:'スープ', emoji:'🍲'},
+      {en:'sandwich', jp:'サンドイッチ', emoji:'🥪'},
+      {en:'sausage', jp:'ソーセージ', emoji:'🌭'},
+      {en:'curry', jp:'カレー', emoji:'🍛'},
+      {en:'rice', jp:'米・ご飯', emoji:'🍚'},
+      {en:'bread', jp:'パン', emoji:'🍞'},
+      {en:'meat', jp:'肉', emoji:'🥩'},
+      {en:'cake', jp:'ケーキ', emoji:'🎂'},
+      {en:'ice cream', jp:'アイスクリーム', emoji:'🍦'},
+      {en:'chocolate', jp:'チョコレート', emoji:'🍫'},
+      {en:'candy', jp:'キャンディ', emoji:'🍬'},
+      {en:'juice', jp:'ジュース', emoji:'🧃'},
+      {en:'milk', jp:'牛乳', emoji:'🥛'},
+      {en:'water', jp:'水', emoji:'💧'},
+      {en:'coffee', jp:'コーヒー', emoji:'☕'},
+      {en:'tea', jp:'紅茶・茶', emoji:'🍵'},
+    ]
+  },
+  {
+    id: 'vegetables', label: '🥦 野菜・果物', cssClass: 'cat-food',
+    words: [
+      {en:'vegetable', jp:'野菜', emoji:'🥬'},
+      {en:'cucumber', jp:'きゅうり', emoji:'🥒'},
+      {en:'carrot', jp:'にんじん', emoji:'🥕'},
+      {en:'lettuce', jp:'レタス', emoji:'🥬'},
+      {en:'cabbage', jp:'キャベツ', emoji:'🥦'},
+      {en:'corn', jp:'とうもろこし', emoji:'🌽'},
+      {en:'tomato', jp:'トマト', emoji:'🍅'},
+      {en:'onion', jp:'玉ねぎ', emoji:'🧅'},
+      {en:'potato', jp:'じゃがいも', emoji:'🥔'},
+      {en:'mushroom', jp:'マッシュルーム', emoji:'🍄'},
+      {en:'pumpkin', jp:'かぼちゃ', emoji:'🎃'},
+      {en:'fruit', jp:'果物', emoji:'🍎'},
+      {en:'apple', jp:'りんご', emoji:'🍎'},
+      {en:'strawberry', jp:'いちご', emoji:'🍓'},
+      {en:'grapes', jp:'ぶどう', emoji:'🍇'},
+      {en:'pineapple', jp:'パイナップル', emoji:'🍍'},
+      {en:'peach', jp:'もも', emoji:'🍑'},
+      {en:'melon', jp:'メロン', emoji:'🍈'},
+      {en:'banana', jp:'バナナ', emoji:'🍌'},
+      {en:'lemon', jp:'レモン', emoji:'🍋'},
+      {en:'cherry', jp:'さくらんぼ', emoji:'🍒'},
+      {en:'watermelon', jp:'すいか', emoji:'🍉'},
+    ]
+  },
+  {
+    id: 'animals', label: '🐘 動物', cssClass: 'cat-animals',
+    words: [
+      {en:'animal', jp:'動物', emoji:'🦁'},
+      {en:'dog', jp:'犬', emoji:'🐶'},
+      {en:'cat', jp:'ネコ', emoji:'🐱'},
+      {en:'panda', jp:'パンダ', emoji:'🐼'},
+      {en:'mouse', jp:'ネズミ', emoji:'🐭'},
+      {en:'bear', jp:'熊', emoji:'🐻'},
+      {en:'elephant', jp:'象', emoji:'🐘'},
+      {en:'horse', jp:'馬', emoji:'🐴'},
+      {en:'cow', jp:'牛', emoji:'🐄'},
+      {en:'tiger', jp:'トラ', emoji:'🐯'},
+      {en:'sheep', jp:'羊', emoji:'🐑'},
+      {en:'chicken', jp:'ニワトリ', emoji:'🐔'},
+      {en:'monkey', jp:'サル', emoji:'🐒'},
+      {en:'pig', jp:'ブタ', emoji:'🐷'},
+      {en:'rabbit', jp:'ウサギ', emoji:'🐰'},
+      {en:'goat', jp:'ヤギ', emoji:'🐐'},
+      {en:'lion', jp:'ライオン', emoji:'🦁'},
+      {en:'fox', jp:'キツネ', emoji:'🦊'},
+      {en:'zebra', jp:'シマウマ', emoji:'🦓'},
+      {en:'wolf', jp:'オオカミ', emoji:'🐺'},
+      {en:'koala', jp:'コアラ', emoji:'🐨'},
+      {en:'whale', jp:'クジラ', emoji:'🐳'},
+      {en:'dolphin', jp:'イルカ', emoji:'🐬'},
+      {en:'bird', jp:'鳥', emoji:'🐦'},
+      {en:'snake', jp:'ヘビ', emoji:'🐍'},
+      {en:'fish', jp:'魚', emoji:'🐟'},
+      {en:'spider', jp:'クモ', emoji:'🕷️'},
+      {en:'ant', jp:'アリ', emoji:'🐜'},
+      {en:'dragon', jp:'ドラゴン', emoji:'🐉'},
+    ]
+  },
+  {
+    id: 'colors', label: '🎨 色・形・単位', cssClass: 'cat-colors',
+    words: [
+      {en:'red', jp:'赤', emoji:'🔴'},
+      {en:'blue', jp:'青', emoji:'🔵'},
+      {en:'green', jp:'緑', emoji:'🟢'},
+      {en:'yellow', jp:'黄色', emoji:'🟡'},
+      {en:'pink', jp:'ピンク', emoji:'🌸'},
+      {en:'black', jp:'黒', emoji:'⚫'},
+      {en:'white', jp:'白', emoji:'⚪'},
+      {en:'orange', jp:'オレンジ', emoji:'🟠'},
+      {en:'purple', jp:'むらさき', emoji:'🟣'},
+      {en:'brown', jp:'茶色', emoji:'🟤'},
+      {en:'circle', jp:'丸', emoji:'⭕'},
+      {en:'triangle', jp:'三角', emoji:'🔺'},
+      {en:'heart', jp:'ハート', emoji:'❤️'},
+      {en:'square', jp:'四角', emoji:'🟦'},
+      {en:'star', jp:'星', emoji:'⭐'},
+      {en:'diamond', jp:'ひし形', emoji:'💎'},
+      {en:'line', jp:'線', emoji:'➖'},
+      {en:'dollar', jp:'ドル', emoji:'💵'},
+      {en:'yen', jp:'円', emoji:'💴'},
+      {en:'meter', jp:'メートル', emoji:'📏'},
+      {en:'centimeter', jp:'センチ', emoji:'📐'},
+      {en:'kilogram', jp:'キログラム', emoji:'⚖️'},
+    ]
+  },
+  {
+    id: 'sports', label: '⚽ スポーツ・活動', cssClass: 'cat-time',
+    words: [
+      {en:'sport', jp:'スポーツ', emoji:'🏅'},
+      {en:'soccer', jp:'サッカー', emoji:'⚽'},
+      {en:'baseball', jp:'野球', emoji:'⚾'},
+      {en:'basketball', jp:'バスケット', emoji:'🏀'},
+      {en:'swimming', jp:'水泳', emoji:'🏊'},
+      {en:'volleyball', jp:'バレーボール', emoji:'🏐'},
+      {en:'tennis', jp:'テニス', emoji:'🎾'},
+      {en:'badminton', jp:'バドミントン', emoji:'🏸'},
+      {en:'football', jp:'フットボール', emoji:'🏈'},
+      {en:'dancing', jp:'ダンス', emoji:'💃'},
+      {en:'fishing', jp:'魚つり', emoji:'🎣'},
+      {en:'jogging', jp:'ジョギング', emoji:'🏃'},
+      {en:'cooking', jp:'料理', emoji:'👨‍🍳'},
+      {en:'reading', jp:'読書', emoji:'📚'},
+      {en:'shopping', jp:'買い物', emoji:'🛍️'},
+      {en:'hiking', jp:'ハイキング', emoji:'🥾'},
+      {en:'camping', jp:'キャンプ', emoji:'⛺'},
+      {en:'running', jp:'ランニング', emoji:'🏃'},
+    ]
+  },
+  {
+    id: 'nature', label: '🌸 自然・遊び', cssClass: 'cat-days',
+    words: [
+      {en:'nature', jp:'自然', emoji:'🌿'},
+      {en:'sky', jp:'空', emoji:'🌤️'},
+      {en:'sun', jp:'太陽', emoji:'☀️'},
+      {en:'moon', jp:'月', emoji:'🌙'},
+      {en:'rainbow', jp:'にじ', emoji:'🌈'},
+      {en:'flower', jp:'花', emoji:'🌸'},
+      {en:'tree', jp:'木', emoji:'🌳'},
+      {en:'mountain', jp:'山', emoji:'⛰️'},
+      {en:'lake', jp:'湖', emoji:'🏞️'},
+      {en:'river', jp:'川', emoji:'🏞️'},
+      {en:'sea', jp:'海', emoji:'🌊'},
+      {en:'beach', jp:'海岸', emoji:'🏖️'},
+      {en:'jungle', jp:'ジャングル', emoji:'🌴'},
+      {en:'weather', jp:'天気', emoji:'⛅'},
+      {en:'snow', jp:'雪', emoji:'❄️'},
+      {en:'rain', jp:'雨', emoji:'🌧️'},
+      {en:'game', jp:'ゲーム', emoji:'🎮'},
+      {en:'balloon', jp:'風船', emoji:'🎈'},
+      {en:'toy', jp:'おもちゃ', emoji:'🧸'},
+      {en:'firework', jp:'花火', emoji:'🎆'},
+    ]
+  },
+  {
+    id: 'body', label: '👁️ からだ・服', cssClass: 'cat-body',
+    words: [
+      {en:'head', jp:'頭', emoji:'🤯'},
+      {en:'eyes', jp:'目', emoji:'👀'},
+      {en:'ears', jp:'耳', emoji:'👂'},
+      {en:'nose', jp:'鼻', emoji:'👃'},
+      {en:'mouth', jp:'口', emoji:'👄'},
+      {en:'teeth', jp:'歯', emoji:'🦷'},
+      {en:'shoulders', jp:'肩', emoji:'💪'},
+      {en:'hand', jp:'手', emoji:'✋'},
+      {en:'leg', jp:'足', emoji:'🦵'},
+      {en:'T-shirt', jp:'Tシャツ', emoji:'👕'},
+      {en:'shirt', jp:'シャツ', emoji:'👔'},
+      {en:'shorts', jp:'半ズボン', emoji:'🩳'},
+      {en:'sweater', jp:'セーター', emoji:'🧥'},
+      {en:'pants', jp:'ズボン', emoji:'👖'},
+      {en:'cap', jp:'帽子（野球帽）', emoji:'🧢'},
+      {en:'hat', jp:'帽子', emoji:'👒'},
+      {en:'shoes', jp:'くつ', emoji:'👟'},
+      {en:'boots', jp:'ブーツ', emoji:'👢'},
+      {en:'glasses', jp:'めがね', emoji:'👓'},
+      {en:'bag', jp:'かばん', emoji:'👜'},
+      {en:'umbrella', jp:'かさ', emoji:'☂️'},
+    ]
+  },
+  {
+    id: 'home', label: '🏠 家・学校', cssClass: 'cat-colors',
+    words: [
+      {en:'house', jp:'家', emoji:'🏠'},
+      {en:'home', jp:'家庭', emoji:'🏡'},
+      {en:'room', jp:'部屋', emoji:'🛋️'},
+      {en:'door', jp:'ドア', emoji:'🚪'},
+      {en:'window', jp:'窓', emoji:'🪟'},
+      {en:'table', jp:'テーブル', emoji:'🪑'},
+      {en:'desk', jp:'机', emoji:'📋'},
+      {en:'chair', jp:'いす', emoji:'💺'},
+      {en:'bed', jp:'ベッド', emoji:'🛏️'},
+      {en:'clock', jp:'時計', emoji:'🕐'},
+      {en:'book', jp:'本', emoji:'📖'},
+      {en:'TV', jp:'テレビ', emoji:'📺'},
+      {en:'computer', jp:'コンピューター', emoji:'💻'},
+      {en:'telephone', jp:'電話機', emoji:'📞'},
+      {en:'school', jp:'学校', emoji:'🏫'},
+      {en:'classroom', jp:'教室', emoji:'🖊️'},
+      {en:'library', jp:'図書館', emoji:'📚'},
+      {en:'teacher', jp:'先生', emoji:'👩‍🏫'},
+      {en:'student', jp:'生徒', emoji:'👦'},
+      {en:'pencil', jp:'えんぴつ', emoji:'✏️'},
+      {en:'eraser', jp:'消しゴム', emoji:'🗑️'},
+      {en:'notebook', jp:'ノート', emoji:'📓'},
+      {en:'scissors', jp:'はさみ', emoji:'✂️'},
+      {en:'piano', jp:'ピアノ', emoji:'🎹'},
+      {en:'guitar', jp:'ギター', emoji:'🎸'},
+    ]
+  },
+  {
+    id: 'places', label: '🏙️ 場所・乗り物', cssClass: 'cat-time',
+    words: [
+      {en:'place', jp:'場所', emoji:'📍'},
+      {en:'city', jp:'都市', emoji:'🏙️'},
+      {en:'town', jp:'町', emoji:'🌆'},
+      {en:'shop', jp:'店', emoji:'🏪'},
+      {en:'hospital', jp:'病院', emoji:'🏥'},
+      {en:'restaurant', jp:'レストラン', emoji:'🍽️'},
+      {en:'park', jp:'公園', emoji:'🌳'},
+      {en:'zoo', jp:'動物園', emoji:'🦁'},
+      {en:'station', jp:'駅', emoji:'🚉'},
+      {en:'car', jp:'自動車', emoji:'🚗'},
+      {en:'bus', jp:'バス', emoji:'🚌'},
+      {en:'taxi', jp:'タクシー', emoji:'🚕'},
+      {en:'train', jp:'電車', emoji:'🚃'},
+      {en:'ship', jp:'船', emoji:'🚢'},
+      {en:'plane', jp:'飛行機', emoji:'✈️'},
+      {en:'police station', jp:'警察署', emoji:'🚔'},
+      {en:'post office', jp:'郵便局', emoji:'🏣'},
+      {en:'bookstore', jp:'本屋', emoji:'📚'},
+      {en:'supermarket', jp:'スーパー', emoji:'🛒'},
+      {en:'castle', jp:'城', emoji:'🏯'},
+      {en:'stadium', jp:'スタジアム', emoji:'🏟️'},
+    ]
+  },
+  {
+    id: 'people', label: '👨‍👩‍👧 人・職業', cssClass: 'cat-animals',
+    words: [
+      {en:'family', jp:'家族', emoji:'👨‍👩‍👧'},
+      {en:'father', jp:'父', emoji:'👨'},
+      {en:'mother', jp:'母', emoji:'👩'},
+      {en:'sister', jp:'姉・妹', emoji:'👧'},
+      {en:'brother', jp:'兄・弟', emoji:'👦'},
+      {en:'son', jp:'息子', emoji:'👦'},
+      {en:'daughter', jp:'娘', emoji:'👧'},
+      {en:'grandfather', jp:'祖父', emoji:'👴'},
+      {en:'grandmother', jp:'祖母', emoji:'👵'},
+      {en:'friend', jp:'友達', emoji:'🤝'},
+      {en:'boy', jp:'男の子', emoji:'👦'},
+      {en:'girl', jp:'女の子', emoji:'👧'},
+      {en:'doctor', jp:'医者', emoji:'👨‍⚕️'},
+      {en:'teacher', jp:'先生', emoji:'👩‍🏫'},
+      {en:'fire fighter', jp:'消防士', emoji:'🚒'},
+      {en:'police officer', jp:'警察官', emoji:'👮'},
+      {en:'artist', jp:'芸術家', emoji:'👨‍🎨'},
+      {en:'astronaut', jp:'宇宙飛行士', emoji:'👨‍🚀'},
+      {en:'baker', jp:'パン職人', emoji:'👨‍🍳'},
+      {en:'farmer', jp:'農夫', emoji:'👨‍🌾'},
+      {en:'pilot', jp:'パイロット', emoji:'👨‍✈️'},
+      {en:'singer', jp:'歌手', emoji:'🎤'},
+    ]
+  },
+  {
+    id: 'adjectives', label: '✨ 様子・気持ち', cssClass: 'cat-body',
+    words: [
+      {en:'good', jp:'良い', emoji:'👍'},
+      {en:'bad', jp:'悪い', emoji:'👎'},
+      {en:'happy', jp:'幸せな', emoji:'😊'},
+      {en:'sad', jp:'悲しい', emoji:'😢'},
+      {en:'fine', jp:'元気な', emoji:'😀'},
+      {en:'big', jp:'大きい', emoji:'🐘'},
+      {en:'small', jp:'小さい', emoji:'🐭'},
+      {en:'long', jp:'長い', emoji:'📏'},
+      {en:'short', jp:'短い', emoji:'📏'},
+      {en:'new', jp:'新しい', emoji:'✨'},
+      {en:'old', jp:'古い', emoji:'🏚️'},
+      {en:'fast', jp:'速い', emoji:'🐇'},
+      {en:'slow', jp:'おそい', emoji:'🐢'},
+      {en:'hot', jp:'暑い', emoji:'🔥'},
+      {en:'cold', jp:'寒い', emoji:'🥶'},
+      {en:'warm', jp:'あたたかい', emoji:'☀️'},
+      {en:'cool', jp:'涼しい', emoji:'🌬️'},
+      {en:'beautiful', jp:'美しい', emoji:'🌹'},
+      {en:'funny', jp:'おもしろい', emoji:'😄'},
+      {en:'strong', jp:'強い', emoji:'💪'},
+      {en:'famous', jp:'有名な', emoji:'⭐'},
+      {en:'delicious', jp:'おいしい', emoji:'😋'},
+      {en:'sunny', jp:'晴れた', emoji:'☀️'},
+      {en:'rainy', jp:'雨の', emoji:'🌧️'},
+      {en:'cloudy', jp:'曇りの', emoji:'☁️'},
+      {en:'snowy', jp:'雪の', emoji:'❄️'},
+    ]
+  },
+  {
+    id: 'verbs', label: '🏃 動詞', cssClass: 'cat-verbs',
+    words: [
+      {en:'go', jp:'行く', emoji:'🚶'},
+      {en:'come', jp:'来る', emoji:'🙋'},
+      {en:'eat', jp:'食べる', emoji:'🍽️'},
+      {en:'drink', jp:'飲む', emoji:'🥤'},
+      {en:'run', jp:'走る', emoji:'🏃'},
+      {en:'walk', jp:'歩く', emoji:'🚶'},
+      {en:'jump', jp:'とぶ', emoji:'🐇'},
+      {en:'sit', jp:'すわる', emoji:'🪑'},
+      {en:'stand', jp:'立つ', emoji:'🧍'},
+      {en:'sleep', jp:'ねむる', emoji:'😴'},
+      {en:'play', jp:'遊ぶ', emoji:'🎮'},
+      {en:'study', jp:'勉強する', emoji:'📚'},
+      {en:'read', jp:'読む', emoji:'📖'},
+      {en:'write', jp:'書く', emoji:'✏️'},
+      {en:'listen', jp:'聞く', emoji:'👂'},
+      {en:'speak', jp:'話す', emoji:'🗣️'},
+      {en:'watch', jp:'見る', emoji:'👀'},
+      {en:'cook', jp:'料理する', emoji:'🍳'},
+      {en:'swim', jp:'泳ぐ', emoji:'🏊'},
+      {en:'sing', jp:'歌う', emoji:'🎤'},
+      {en:'dance', jp:'おどる', emoji:'💃'},
+      {en:'fly', jp:'飛ぶ', emoji:'🦅'},
+      {en:'buy', jp:'買う', emoji:'🛍️'},
+      {en:'like', jp:'好む', emoji:'❤️'},
+      {en:'love', jp:'愛する', emoji:'💕'},
+      {en:'help', jp:'助ける', emoji:'🤝'},
+      {en:'make', jp:'作る', emoji:'🔨'},
+      {en:'open', jp:'開ける', emoji:'🚪'},
+      {en:'close', jp:'閉める', emoji:'🚫'},
+      {en:'take', jp:'とる', emoji:'🤲'},
+    ]
+  },
+];
+
+// Build tabs
+const tabContainer = document.getElementById('tabs');
+const sectionsContainer = document.getElementById('sections');
+
+categories.forEach((cat, i) => {
+  // Tab button
+  const btn = document.createElement('button');
+  btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = cat.label;
+  btn.onclick = () => showCategory(cat.id);
+  tabContainer.appendChild(btn);
+
+  // Section
+  const section = document.createElement('div');
+  section.className = 'category-section' + (i === 0 ? ' visible' : '');
+  section.id = 'section-' + cat.id;
+
+  const title = document.createElement('div');
+  title.className = 'section-title';
+  title.textContent = cat.label;
+  section.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'word-grid ' + cat.cssClass;
+
+  cat.words.forEach(w => {
+    const card = document.createElement('div');
+    card.className = 'word-card';
+    card.innerHTML = `
+      <span class="word-emoji">${w.emoji}</span>
+      <span class="word-en">${w.en}</span>
+      <span class="word-jp">${w.jp}</span>
+      <span class="sound-icon">🔊</span>
+    `;
+    card.onclick = () => speak(w.en, card);
+    grid.appendChild(card);
+  });
+
+  section.appendChild(grid);
+  sectionsContainer.appendChild(section);
+});
+
+function showCategory(id) {
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', categories[i].id === id);
+  });
+  document.querySelectorAll('.category-section').forEach(s => {
+    s.classList.toggle('visible', s.id === 'section-' + id);
+  });
+  // Scroll tabs into view
+  const activeTab = document.querySelector('.tab-btn.active');
+  if (activeTab) activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+}
+
+// Speech synthesis
+let currentUtterance = null;
+
+function speak(text, card) {
+  if (!window.speechSynthesis) {
+    alert('お使いのブラウザは音声読み上げに対応していません。');
+    return;
+  }
+
+  // Cancel current speech
+  window.speechSynthesis.cancel();
+
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'en-US';
+  utter.rate = 0.85;
+  utter.pitch = 1.0;
+
+  // Try to get an English voice
+  const voices = window.speechSynthesis.getVoices();
+  const enVoice = voices.find(v => v.lang.startsWith('en-') && (v.name.includes('Samantha') || v.name.includes('Karen') || v.name.includes('Daniel') || v.name.includes('Google')))
+    || voices.find(v => v.lang.startsWith('en-'));
+  if (enVoice) utter.voice = enVoice;
+
+  // Visual feedback
+  document.querySelectorAll('.word-card.playing').forEach(c => c.classList.remove('playing'));
+  card.classList.add('playing');
+
+  utter.onend = () => {
+    card.classList.remove('playing');
+  };
+  utter.onerror = () => {
+    card.classList.remove('playing');
+  };
+
+  window.speechSynthesis.speak(utter);
+}
+
+// Preload voices
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+  window.speechSynthesis.addEventListener('voiceschanged', () => {
+    window.speechSynthesis.getVoices();
+  });
+}
+</script>
+</body>
+</html>
